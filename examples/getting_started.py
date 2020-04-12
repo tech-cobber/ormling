@@ -1,6 +1,7 @@
 import asyncio
+from ormling.types import Integer, Serial, Text
 from ormling.api import Ormling
-import datetime
+from ormling.schema import primary_key
 import uvloop
 
 
@@ -9,20 +10,19 @@ DATABASE = 'postgresql://dev@localhost/mydb'
 db = Ormling()
 
 
+@primary_key('id')
+class Music(metaclass=db.Model):
+    __tablename__ = 'music'
+
+    id: Serial
+    song: Text
+    artist: Text
+    released: Integer
+
+
 async def main():
     await db.bind(DATABASE)
-    await db.connection.execute('''
-        CREATE TABLE orms(
-            id serial PRIMARY KEY,
-            name text,
-            started date
-        )
-    ''')
-    await db.connection.execute('''
-        INSERT INTO orms(name, started) VALUES($1, $2)
-    ''', 'Ormling', datetime.date(2020, 4, 6))
-    await db.connection.fetchrow(
-        'SELECT * FROM orms WHERE name = $1', 'Ormling')
+    await db.create_all()
     await db.close()
 
 if __name__ == "__main__":
