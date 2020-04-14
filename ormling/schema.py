@@ -27,3 +27,7 @@ def primary_key(name):
         cls.__annotations__[name] = Key(attr, 'PRIMARY KEY')
         return cls
     return decorator
+
+
+class Model(object):
+    pass

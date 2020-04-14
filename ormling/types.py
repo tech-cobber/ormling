@@ -28,4 +28,4 @@ class Float(Type):
 
 class Text(Type):
     def __init__(self):
-        super().__init__(name='float')
+        super().__init__(name='text')

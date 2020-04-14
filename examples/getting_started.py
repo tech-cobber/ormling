@@ -11,7 +11,7 @@ db = Ormling()
 
 
 @primary_key('id')
-class Music(metaclass=db.Model):
+class Music(db.Base):
     __tablename__ = 'music'
 
     id: Serial
@@ -23,6 +23,9 @@ class Music(metaclass=db.Model):
 async def main():
     await db.bind(DATABASE)
     await db.create_all()
+    await db.query.insert(Music(song='Welcome to My World',
+                                artist='Jim Reeves',
+                                released=1963))
     await db.close()
 
 if __name__ == "__main__":

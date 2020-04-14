@@ -1,6 +1,6 @@
 import asyncpg
-from .schema import Attribute
-from .crud import create_sql
+from .schema import Attribute, Model
+from .crud import _create_sql, Query
 
 
 class Ormling:
@@ -33,25 +33,34 @@ class Ormling:
         await self.connection.close()
 
     @property
-    def Model(self):
-        class Typed(type):
+    def Base(self):
+
+        class Meta(type):
             def __new__(cls, name, bases, clsdict):
-                if not clsdict.get('__tablename__'):
-                    clsdict['__tablename__'] = name.lower()
-                for var, annottation in clsdict.get('__annotations__').items():
-                    clsdict['__annotations__'][var] = Attribute(
-                        var, annottation())
-                self.tables.append(type.__new__(cls, name, bases, clsdict))
+                clsdict['__tablename__'] = name.lower()
+                if clsdict.get('__annotations__'):
+                    for var, annottation in clsdict.get('__annotations__').items():
+                        clsdict['__annotations__'][var] = Attribute(
+                            var, annottation())
+                    self.tables.append(type.__new__(cls, name, bases, clsdict))
                 return type.__new__(cls, name, bases, clsdict)
-        return Typed
+
+        class Base(Model, metaclass=Meta):
+            def __init__(self, **kwargs):
+                for name, value in kwargs.items():
+                    setattr(self, name, value)
+        return Base
 
     async def create_all(self):
-        # TODO if exists?
         for table in self.tables:
             clsdict = table.__dict__
             name = clsdict['__tablename__']
             atts = list(clsdict['__annotations__'].values())
-            await self.connection.execute(create_sql(name, atts))
+            await self.connection.execute(_create_sql(name, atts))
+
+    @property
+    def query(self):
+        return Query(self.connection)
 
 
 __all__ = [
