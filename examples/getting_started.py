@@ -26,7 +26,9 @@ async def main():
     await db.query.insert(Music(song='Welcome to My World',
                                 artist='Jim Reeves',
                                 released=1963))
-    await db.close()
+    example_1 = await db.query.get(Music(released=1963))
+    example_2 = await db.query.all(Music())
+    print(f'First example: {example_1}\nSecond example: {example_2}\n')
 
 if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(main())

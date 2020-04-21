@@ -1,5 +1,6 @@
 from .schema import Attribute
 from typing import List
+from asyncpg import Record
 
 
 def _create_sql(name: str, attributes: List[Attribute]) -> str:
@@ -14,12 +15,14 @@ def _insert_sql(name: str, atts: list, values: list) -> str:
     return query
 
 
-def _select_sql(*args) -> str:
-    pass
-
-
-def _update_sql(*args) -> str:
-    pass
+def _select_sql(name: str, atts: list = None, where: list = None) -> str:
+    if atts:
+        pass
+    else:
+        query = f'SELECT * FROM {name}'
+        if where:
+            query += f" WHERE {', '.join(where)}"
+        return query
 
 
 def _delete_sql(*args) -> str:
@@ -37,3 +40,17 @@ class Query:
             list(obj.__dict__.keys()),
             [f"\'{value}\'" for value in obj.__dict__.values()]
         ))
+
+    async def get(self, obj) -> Record:
+        return await self.connection.fetch(_select_sql(
+            name=obj.__class__.__tablename__,
+            where=[f"{key}=\'{val}\'" for key, val in obj.__dict__.items()],
+        ))
+
+    async def all(self, obj):
+        return await self.connection.fetch(_select_sql(
+            name=obj.__class__.__tablename__,
+        ))
+
+    async def delete(self, obj):
+        pass
